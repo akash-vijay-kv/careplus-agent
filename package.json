@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "agent-opfor": "file:../agent-opfor/agent-opfor-0.1.0.tgz"
+  }
+}
