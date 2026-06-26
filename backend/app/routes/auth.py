@@ -4,9 +4,10 @@ import base64
 import json
 
 import bcrypt
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
+from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse
 
@@ -53,13 +54,15 @@ def decode_token(token: str) -> dict | None:
 
 
 @router.post("/auth/login", response_model=LoginResponse)
-def login(request: LoginRequest) -> LoginResponse:
+def login(request: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
     """Authenticate a user with email and password.
 
     Parameters
     ----------
     request : LoginRequest
         Login credentials.
+    db : Session
+        Injected database session (auto-closed by FastAPI dependency).
 
     Returns
     -------
@@ -71,25 +74,21 @@ def login(request: LoginRequest) -> LoginResponse:
     HTTPException
         401 if credentials are invalid.
     """
-    db = SessionLocal()
-    try:
-        user = db.query(User).filter(User.email == request.email).first()
+    user = db.query(User).filter(User.email == request.email).first()
 
-        if not user or not user.password_hash:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        if not bcrypt.checkpw(
-            request.password.encode(), user.password_hash.encode()
-        ):
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not bcrypt.checkpw(
+        request.password.encode(), user.password_hash.encode()
+    ):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        token = _create_token(user.id, user.email)
+    token = _create_token(user.id, user.email)
 
-        return LoginResponse(
-            user_id=user.id,
-            name=f"{user.first_name} {user.last_name}",
-            email=user.email,
-            token=token,
-        )
-    finally:
-        db.close()
+    return LoginResponse(
+        user_id=user.id,
+        name=f"{user.first_name} {user.last_name}",
+        email=user.email,
+        token=token,
+    )

@@ -5,11 +5,13 @@ scanned PDFs and images, and GPT-4o-mini (text only) for structuring
 the extracted text into JSON.
 """
 
+import asyncio
 import io
 import json
 import logging
 import re
 import traceback
+from functools import partial
 
 from fastapi import APIRouter, File, Form, UploadFile
 from openai import OpenAI
@@ -339,12 +341,17 @@ async def upload_blood_report(
     )
 
     parsed: list = []
+    loop = asyncio.get_running_loop()
 
     try:
         if content_type == "application/pdf" or filename.lower().endswith(".pdf"):
-            parsed = _process_pdf(file_bytes)
+            parsed = await loop.run_in_executor(
+                None, partial(_process_pdf, file_bytes)
+            )
         elif content_type.startswith("image/"):
-            parsed = _process_image(file_bytes)
+            parsed = await loop.run_in_executor(
+                None, partial(_process_image, file_bytes)
+            )
         else:
             return {
                 "status": "error",

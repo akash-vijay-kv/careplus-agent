@@ -4,9 +4,10 @@ from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agno.db.postgres import PostgresDb
 
+from sqlalchemy.orm import Session
+
 from app.config import settings
 from app.agent.instructions import SYSTEM_PROMPT, GUEST_CONTEXT, LOGGED_IN_CONTEXT
-from app.database import SessionLocal
 from app.models.user import User
 from app.tools.appointment_tools import AppointmentTools
 from app.tools.medication_tools import MedicationTools
@@ -24,7 +25,7 @@ def _get_agno_db_url() -> str:
     return settings.database_url
 
 
-def _get_user_name(db_session, user_id: int) -> str:
+def _get_user_name(db_session: Session, user_id: int) -> str:
     """Look up the full name of a user by ID.
 
     Parameters
@@ -45,11 +46,20 @@ def _get_user_name(db_session, user_id: int) -> str:
     return "User"
 
 
-def create_agent(session_id: str | None = None, user_id: int | None = None) -> Agent:
+def create_agent(
+    db_session: Session,
+    session_id: str | None = None,
+    user_id: int | None = None,
+) -> Agent:
     """Create and return a configured CarePlus agent instance.
+
+    The caller is responsible for closing the ``db_session`` after the
+    agent interaction is complete.
 
     Parameters
     ----------
+    db_session : Session
+        Externally managed SQLAlchemy session. Must be closed by the caller.
     session_id : str | None
         Optional session identifier for conversation continuity.
     user_id : int | None
@@ -60,8 +70,6 @@ def create_agent(session_id: str | None = None, user_id: int | None = None) -> A
     Agent
         Configured Agno agent with toolkits based on auth state.
     """
-    db_session = SessionLocal()
-
     agno_db = PostgresDb(
         db_url=_get_agno_db_url(),
         session_table="agno_sessions",
