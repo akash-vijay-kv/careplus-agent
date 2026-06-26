@@ -15,6 +15,7 @@ export interface FileAttachment {
 export interface ChatRequest {
   message: string;
   session_id?: string;
+  token?: string | null;
 }
 
 export interface ChatResponse {
@@ -37,4 +38,23 @@ export interface ParsedBloodResult {
   reference_range_low: number | null;
   reference_range_high: number | null;
   tested_at: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user_id: number;
+  name: string;
+  email: string;
+  token: string;
+}
+
+export interface AuthState {
+  token: string;
+  userId: number;
+  name: string;
+  email: string;
 }

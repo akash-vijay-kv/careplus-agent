@@ -13,7 +13,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
       message.content.toLowerCase().includes("emergency"));
 
   return (
-    <div className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
+    <div className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`} data-testid="chat-message" data-message-role={message.role}>
       {!isUser && (
         <div className="w-8 h-8 bg-careplus rounded-full flex items-center justify-center flex-shrink-0">
           <svg

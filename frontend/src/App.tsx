@@ -1,6 +1,36 @@
+import { useState } from "react";
+import { AuthState } from "./types";
 import ChatWindow from "./components/ChatWindow";
+import LoginForm from "./components/LoginForm";
+
+type SessionMode = "login" | "guest" | "authenticated";
 
 function App() {
+  const [auth, setAuth] = useState<AuthState | null>(null);
+  const [mode, setMode] = useState<SessionMode>("login");
+
+  const handleLogin = (authState: AuthState) => {
+    setAuth(authState);
+    setMode("authenticated");
+  };
+
+  const handleGuest = () => {
+    setAuth(null);
+    setMode("guest");
+  };
+
+  const handleLogout = () => {
+    setAuth(null);
+    setMode("login");
+  };
+
+  if (mode === "login") {
+    return <LoginForm onLogin={handleLogin} onGuest={handleGuest} />;
+  }
+
+  const isGuest = mode === "guest";
+  const token = auth?.token ?? null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-sky-100">
       <header className="bg-white shadow-sm border-b border-blue-100">
@@ -20,16 +50,22 @@ function App() {
               />
             </svg>
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-800">CarePlus</h1>
             <p className="text-xs text-gray-500">
-              Your AI Medical Assistant
+              {isGuest ? "Guest Session" : `Signed in as ${auth?.name}`}
             </p>
           </div>
+          <button
+            onClick={handleLogout}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100"
+          >
+            {isGuest ? "Sign In" : "Sign Out"}
+          </button>
         </div>
       </header>
       <main className="h-[calc(100vh-73px)]">
-        <ChatWindow />
+        <ChatWindow token={token} isGuest={isGuest} />
       </main>
     </div>
   );

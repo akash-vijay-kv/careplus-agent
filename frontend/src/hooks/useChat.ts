@@ -6,7 +6,7 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-export function useChat() {
+export function useChat(token: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
@@ -38,6 +38,7 @@ export function useChat() {
         const response = await sendMessage({
           message: content.trim(),
           session_id: sessionId,
+          token: token,
         });
 
         const assistantMessage: Message = {
@@ -65,7 +66,7 @@ export function useChat() {
         setIsLoading(false);
       }
     },
-    [sessionId, isLoading]
+    [sessionId, isLoading, token]
   );
 
   const uploadFile = useCallback(
@@ -113,6 +114,7 @@ export function useChat() {
         const response = await sendMessage({
           message: agentMessage,
           session_id: sessionId,
+          token: token,
         });
 
         const assistantMessage: Message = {
@@ -140,7 +142,7 @@ export function useChat() {
         setIsLoading(false);
       }
     },
-    [sessionId, isLoading]
+    [sessionId, isLoading, token]
   );
 
   const clearChat = useCallback(() => {

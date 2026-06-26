@@ -21,6 +21,10 @@ class ChatRequest(BaseModel):
         default_factory=lambda: str(uuid.uuid4()),
         description="Session identifier for conversation continuity",
     )
+    token: str | None = Field(
+        default=None,
+        description="Optional authentication token for logged-in sessions",
+    )
 
 
 class ChatResponse(BaseModel):

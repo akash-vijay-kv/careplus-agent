@@ -7,6 +7,7 @@ from app.models.medication import Medication
 from app.models.prescription import Prescription
 from app.models.blood_result import BloodResult
 from app.models.consultation_request import ConsultationRequest
+from app.models.order import Order
 
 __all__ = [
     "User",
@@ -16,4 +17,5 @@ __all__ = [
     "Prescription",
     "BloodResult",
     "ConsultationRequest",
+    "Order",
 ]

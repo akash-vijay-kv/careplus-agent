@@ -17,6 +17,7 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255))
     phone: Mapped[str | None] = mapped_column(String(20))
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
     address_line1: Mapped[str | None] = mapped_column(String(255))
@@ -35,3 +36,4 @@ class User(Base):
     prescriptions = relationship("Prescription", back_populates="user")
     blood_results = relationship("BloodResult", back_populates="user")
     consultation_requests = relationship("ConsultationRequest", back_populates="user")
+    orders = relationship("Order", back_populates="user")

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255),
     phone VARCHAR(20),
     date_of_birth DATE NOT NULL,
     address_line1 VARCHAR(255),
@@ -108,13 +109,33 @@ CREATE TABLE IF NOT EXISTS consultation_requests (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Orders table (medicine orders)
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    order_number VARCHAR(50) UNIQUE NOT NULL,
+    medication_name VARCHAR(200) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(10,2) NOT NULL,
+    total_price NUMERIC(10,2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'placed',
+    shipping_address TEXT,
+    ordered_at TIMESTAMP DEFAULT NOW(),
+    delivered_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- ============================================================
 -- SEED DATA
 -- ============================================================
 
--- Demo user
-INSERT INTO users (id, first_name, last_name, email, phone, date_of_birth, address_line1, city, state, zip_code, emergency_contact_name, emergency_contact_phone)
-VALUES (1, 'Sarah', 'Johnson', 'sarah.johnson@email.com', '+1-555-0142', '1985-03-15', '742 Evergreen Terrace', 'Springfield', 'Illinois', '62701', 'Michael Johnson', '+1-555-0198');
+-- Demo user (password: sarah123)
+INSERT INTO users (id, first_name, last_name, email, password_hash, phone, date_of_birth, address_line1, city, state, zip_code, emergency_contact_name, emergency_contact_phone)
+VALUES (1, 'Sarah', 'Johnson', 'sarah.johnson@email.com', '$2b$12$PCCOQyVUQFgfkU9fhKaQBe/Z.ksCDL2mDvLzxuyJfe4zSAaCLQsze', '+1-555-0142', '1985-03-15', '742 Evergreen Terrace', 'Springfield', 'Illinois', '62701', 'Michael Johnson', '+1-555-0198');
+
+-- Second demo user (password: john123)
+INSERT INTO users (id, first_name, last_name, email, password_hash, phone, date_of_birth, address_line1, city, state, zip_code, emergency_contact_name, emergency_contact_phone)
+VALUES (2, 'John', 'Doe', 'john.doe@email.com', '$2b$12$gRaurxkH4nXcgGVkHrRtDepTbUMLM2B9jaVuvNwCF7TJ.AtdMxN12', '+1-555-0267', '1990-08-22', '123 Oak Avenue', 'Shelbyville', 'Illinois', '62702', 'Jane Doe', '+1-555-0289');
 
 -- Health profile
 INSERT INTO health_profiles (user_id, allergies, chronic_conditions, past_procedures, family_history, blood_type, height_cm, weight_kg)
@@ -181,5 +202,14 @@ INSERT INTO blood_results (user_id, test_type, value, unit, reference_range_low,
 (1, 'HbA1c', 5.8, '%', 4.0, 5.7, '2026-04-15 09:00:00', 'Quest Diagnostics'),
 (1, 'HbA1c', 5.7, '%', 4.0, 5.7, '2026-06-15 09:00:00', 'Quest Diagnostics');
 
--- Reset sequence for users table
+-- Medicine orders
+INSERT INTO orders (user_id, order_number, medication_name, quantity, unit_price, total_price, status, shipping_address, ordered_at, delivered_at) VALUES
+(1, 'ORD-101', 'Lisinopril 10mg', 90, 12.50, 37.50, 'delivered', '742 Evergreen Terrace, Springfield, IL 62701', '2026-05-01 10:30:00', '2026-05-05 14:00:00'),
+(1, 'ORD-102', 'Atorvastatin 20mg', 30, 18.00, 18.00, 'shipped', '742 Evergreen Terrace, Springfield, IL 62701', '2026-06-15 09:00:00', NULL),
+(1, 'ORD-103', 'Vitamin D3 2000 IU', 60, 8.99, 8.99, 'processing', '742 Evergreen Terrace, Springfield, IL 62701', '2026-06-22 16:45:00', NULL),
+(2, 'ORD-104', 'Metformin 500mg', 60, 15.00, 30.00, 'delivered', '123 Oak Avenue, Shelbyville, IL 62702', '2026-04-20 11:00:00', '2026-04-25 10:30:00'),
+(2, 'ORD-105', 'Omeprazole 20mg', 30, 22.50, 22.50, 'placed', '123 Oak Avenue, Shelbyville, IL 62702', '2026-06-24 08:15:00', NULL);
+
+-- Reset sequences
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+SELECT setval('orders_id_seq', (SELECT MAX(id) FROM orders));

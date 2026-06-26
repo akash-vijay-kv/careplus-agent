@@ -3,18 +3,39 @@ import { useChat } from "../hooks/useChat";
 import MessageBubble from "./MessageBubble";
 import InputBar from "./InputBar";
 
-function ChatWindow() {
-  const { messages, isLoading, sendUserMessage, uploadFile, clearChat } = useChat();
+interface ChatWindowProps {
+  token: string | null;
+  isGuest: boolean;
+}
+
+const LOGGED_IN_SUGGESTIONS = [
+  "Show my upcoming appointments",
+  "List my medications",
+  "Show my medicine orders",
+  "Show my cholesterol history",
+];
+
+const GUEST_SUGGESTIONS = [
+  "What is the status of order ORD-101?",
+  "I have a headache and fever",
+  "What are the emergency numbers?",
+  "Look up order ORD-104",
+];
+
+function ChatWindow({ token, isGuest }: ChatWindowProps) {
+  const { messages, isLoading, sendUserMessage, uploadFile, clearChat } = useChat(token);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const suggestions = isGuest ? GUEST_SUGGESTIONS : LOGGED_IN_SUGGESTIONS;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+    <div className="chat-container flex flex-col h-full" id="chat-container" data-testid="chat-window">
+      <div className="chat-window flex-1 overflow-y-auto" role="log" aria-label="Chat messages" data-testid="chat-messages">
+        <div className="message-list max-w-4xl mx-auto px-4 py-6 space-y-4">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-20 h-20 bg-careplus/10 rounded-full flex items-center justify-center mb-4">
@@ -36,16 +57,12 @@ function ChatWindow() {
               Welcome to CarePlus
             </h2>
             <p className="text-gray-500 max-w-md">
-              I'm your AI medical assistant. I can help you manage appointments,
-              medications, blood results, and more. How can I assist you today?
+              {isGuest
+                ? "You're browsing as a guest. I can help with general health questions and order lookups."
+                : "I'm your AI medical assistant. I can help you manage appointments, medications, orders, and more."}
             </p>
             <div className="grid grid-cols-2 gap-2 mt-6 max-w-lg">
-              {[
-                "Show my upcoming appointments",
-                "List my medications",
-                "Show my cholesterol history",
-                "I need to update my address",
-              ].map((suggestion) => (
+              {suggestions.map((suggestion) => (
                 <button
                   key={suggestion}
                   onClick={() => sendUserMessage(suggestion)}

@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-careplus_secret}
       POSTGRES_DB: ${POSTGRES_DB:-careplus}
     ports:
-      - "5432:5432"
+      - "5438:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
@@ -21,7 +21,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8009:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://careplus:careplus_secret@db:5432/careplus}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -36,7 +36,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3009:3000"
     environment:
       - API_PROXY_TARGET=http://backend:8000
     depends_on:

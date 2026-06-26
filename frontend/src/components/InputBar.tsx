@@ -105,6 +105,7 @@ function InputBar({ onSend, onFileUpload, disabled }: InputBarProps) {
           onClick={handleFileClick}
           disabled={disabled}
           title="Upload blood report (PDF or image)"
+          aria-label="Attach file"
           className="w-10 h-10 text-gray-400 hover:text-careplus rounded-xl flex items-center justify-center hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
@@ -130,11 +131,14 @@ function InputBar({ onSend, onFileUpload, disabled }: InputBarProps) {
           placeholder="Type your message or attach a blood report..."
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-careplus/50 focus:border-careplus disabled:opacity-50 disabled:bg-gray-50"
+          data-testid="chat-input"
+          className="chat-input flex-1 resize-none rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-careplus/50 focus:border-careplus disabled:opacity-50 disabled:bg-gray-50"
         />
         <button
           onClick={handleSend}
           disabled={disabled || !canSend}
+          aria-label="Send message"
+          data-testid="chat-send-button"
           className="w-10 h-10 bg-careplus text-white rounded-xl flex items-center justify-center hover:bg-careplus-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg

@@ -6,9 +6,31 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from app.agent.core import create_agent
+from app.routes.auth import decode_token
 from app.schemas.chat import ChatRequest, ChatResponse
 
 router = APIRouter()
+
+
+def _extract_user_id(token: str | None) -> int | None:
+    """Extract user_id from an authentication token.
+
+    Parameters
+    ----------
+    token : str | None
+        The base64-encoded auth token, or None for guest sessions.
+
+    Returns
+    -------
+    int | None
+        The user_id if token is valid, None otherwise.
+    """
+    if not token:
+        return None
+    payload = decode_token(token)
+    if payload and "user_id" in payload:
+        return payload["user_id"]
+    return None
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -18,14 +40,15 @@ def chat(request: ChatRequest) -> ChatResponse:
     Parameters
     ----------
     request : ChatRequest
-        The incoming chat message with session_id.
+        The incoming chat message with session_id and optional token.
 
     Returns
     -------
     ChatResponse
         The agent's response message.
     """
-    agent = create_agent(session_id=request.session_id)
+    user_id = _extract_user_id(request.token)
+    agent = create_agent(session_id=request.session_id, user_id=user_id)
     response = agent.run(request.message)
 
     response_text = response.content if response and response.content else "I'm sorry, I couldn't process that request. How can I help you?"
@@ -43,14 +66,15 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
     Parameters
     ----------
     request : ChatRequest
-        The incoming chat message with session_id.
+        The incoming chat message with session_id and optional token.
 
     Returns
     -------
     StreamingResponse
         Server-sent events stream of the agent's response.
     """
-    agent = create_agent(session_id=request.session_id)
+    user_id = _extract_user_id(request.token)
+    agent = create_agent(session_id=request.session_id, user_id=user_id)
 
     def generate():
         response = agent.run(request.message, stream=True)
