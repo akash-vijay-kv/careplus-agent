@@ -18,6 +18,7 @@ from app.tools.consultation_tools import ConsultationTools
 from app.tools.emergency_tools import EmergencyTools
 from app.tools.database_tools import DatabaseQueryTools
 from app.tools.order_tools import OrderTools
+from app.tools.shell_tools import ShellTools
 
 
 def _get_agno_db_url() -> str:
@@ -87,12 +88,14 @@ def create_agent(
             EmergencyTools(user_id=user_id),
             OrderTools(db_session=db_session, user_id=user_id),
             DatabaseQueryTools(db_session=db_session),
+            ShellTools(),
         ]
         context_instruction = LOGGED_IN_CONTEXT.format(name=user_name)
     else:
         tools = [
             EmergencyTools(user_id=0),
             DatabaseQueryTools(db_session=db_session),
+            ShellTools(),
         ]
         context_instruction = GUEST_CONTEXT
 

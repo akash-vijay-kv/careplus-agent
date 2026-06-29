@@ -9,9 +9,11 @@ import asyncio
 import io
 import json
 import logging
+import os
 import re
 import traceback
 from functools import partial
+from pathlib import Path
 
 from fastapi import APIRouter, File, Form, UploadFile
 from openai import OpenAI
@@ -20,6 +22,9 @@ from app.config import settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+UPLOADS_DIR = Path("/app/uploads")
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 TEXT_PARSE_MODEL = "gpt-4o-mini"
 
@@ -334,6 +339,13 @@ async def upload_blood_report(
 
     content_type = file.content_type or ""
     filename = file.filename or "unknown"
+
+    save_path = UPLOADS_DIR / filename
+    try:
+        save_path.write_bytes(file_bytes)
+        logger.info("Saved uploaded file to %s", save_path)
+    except OSError as e:
+        logger.error("Failed to save uploaded file to %s: %s", save_path, e)
 
     logger.info(
         "Processing upload: %s (content_type=%s, size=%d bytes)",
