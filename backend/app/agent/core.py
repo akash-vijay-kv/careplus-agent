@@ -1,6 +1,8 @@
 """Core Agno agent setup for CarePlus medical assistant."""
 
 from agno.agent import Agent
+from agno.models.base import Model
+from agno.models.litellm import LiteLLM
 from agno.models.openai import OpenAIChat
 from agno.db.postgres import PostgresDb
 
@@ -24,6 +26,44 @@ from app.tools.shell_tools import ShellTools
 def _get_agno_db_url() -> str:
     """Get the database URL in a format compatible with Agno's PostgresDb."""
     return settings.database_url
+
+
+def _build_model() -> Model:
+    """Build the chat model for the agent based on the configured provider.
+
+    Selects between the direct OpenAI client and LiteLLM (proxy or direct)
+    via ``settings.llm_provider``. Both providers use the same shared model
+    id (``settings.llm_model_id``).
+
+    Returns
+    -------
+    Model
+        A configured Agno model instance.
+
+    Raises
+    ------
+    ValueError
+        If ``settings.llm_provider`` is not a supported value.
+    """
+    provider = settings.llm_provider.lower()
+
+    if provider == "openai":
+        return OpenAIChat(id=settings.llm_model_id, api_key=settings.openai_api_key)
+
+    if provider == "litellm":
+        # api_key/api_base are optional: LiteLLM falls back to its own env vars
+        # (LITELLM_API_KEY) and provider defaults when these are unset.
+        litellm_kwargs: dict[str, str] = {}
+        if settings.litellm_api_key:
+            litellm_kwargs["api_key"] = settings.litellm_api_key
+        if settings.litellm_api_base:
+            litellm_kwargs["api_base"] = settings.litellm_api_base
+        return LiteLLM(id=settings.llm_model_id, **litellm_kwargs)
+
+    raise ValueError(
+        f"Unsupported llm_provider {settings.llm_provider!r}; "
+        "expected 'openai' or 'litellm'."
+    )
 
 
 def _get_user_name(db_session: Session, user_id: int) -> str:
@@ -101,7 +141,7 @@ def create_agent(
 
     agent = Agent(
         name="CarePlus Medical Assistant",
-        model=OpenAIChat(id="gpt-4o-mini", api_key=settings.openai_api_key),
+        model=_build_model(),
         db=agno_db,
         tools=tools,
         instructions=[SYSTEM_PROMPT, context_instruction],

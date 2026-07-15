@@ -8,6 +8,15 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://careplus:careplus_secret@localhost:5432/careplus"
     openai_api_key: str = ""
+
+    # LLM provider selection: "openai" for the direct OpenAI client,
+    # "litellm" to route through LiteLLM (proxy or direct). The model id is
+    # shared across providers so both paths use the same underlying model.
+    llm_provider: str = "openai"
+    llm_model_id: str = "gpt-4o-mini"
+    litellm_api_key: str = ""
+    litellm_api_base: str = ""
+
     app_name: str = "CarePlus Medical Assistant"
     debug: bool = False
     default_user_id: int = 1

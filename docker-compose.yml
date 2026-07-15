@@ -29,6 +29,10 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://careplus:careplus_secret@db:5432/careplus}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL_ID=${LLM_MODEL_ID:-gpt-4o-mini}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - LITELLM_API_BASE=${LITELLM_API_BASE}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://frontend:3000}
     depends_on:
       db:
